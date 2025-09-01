@@ -758,7 +758,7 @@ async def handle_callbacks(bot: Client, callback_query):
             "💰 **Pricing:**\n"
             "┣ **1 Month:** 25 only\n"
             "┣ **3 Months:** ₹70 (Save ₹5)\n"
-            "┣ **6 Months:** ₹125 (Save )\n"
+            "┣ **6 Months:** ₹125 (Save ₹25)\n"
             "┗ **1 Year:** ₹250 (Save ₹50)\n\n"
             "📞 **How to Get Premium:**\n"
             "1. Contact our admin: @M4U_Admin_Bot\n"
