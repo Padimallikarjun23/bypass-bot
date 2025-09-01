@@ -756,10 +756,13 @@ async def handle_callbacks(bot: Client, callback_query):
             "┣ 👑 **VIP** customer support\n"
             "┗ 🚀 **5x faster** processing speed\n\n"
             "💰 **Pricing:**\n"
-            "┣ **1 Month:** 25 (₹0.83/day) only\n"
-            "┣ **3 Months:** ₹70 (₹0.78/day) (Save ₹5)\n"
-            "┣ **6 Months:** ₹125 (₹0.69/day) (Save ₹25)\n"
-            "┗ **1 Year:** ₹250 (₹0.68/day) (Save ₹50)\n\n"
+            "┣ **1 Month:**→ ₹25 → ₹0.83/day\n"
+            
+            "┣ **3 Months:**→ ₹70 → ₹0.78/day | 💸 Save ₹5\n"
+            
+            "┣ **6 Months:**→ ₹125 → ₹0.69/day | 💸 Save ₹25\n"
+            
+            "┗ **1 Year:**→ ₹250 → ₹0.68/day | 🏆 Save ₹50\n\n"
             
             "📞 **How to Get Premium:**\n"
             "1. Contact our admin: @M4U_Admin_Bot\n"
