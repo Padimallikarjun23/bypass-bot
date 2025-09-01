@@ -485,7 +485,7 @@ async def start_command(bot: Client, message: Message):
         f"┣ 🎁 Exclusive features\n"
         f"┗ 👑 VIP support\n\n"
         f"🔥 **Join our community & get premium access!**\n"
-        f"💰 **Price:** Just ₹15 for 30 days unlimited access!\n\n"
+        f"💰 **Price:** Just ₹25 for 30 days unlimited access!\n\n"
         f"⚡ **Developer:** {make_clickable_link('Contact Here', 'https://t.me/M4U_Admin_Bot')}\n"
         f"📢 **Updates:** {make_clickable_link('Malli4U Official', 'https://t.me/Malli4U_Official2')}"
     )
@@ -630,7 +630,7 @@ async def stats_command(bot: Client, message: Message):
                 f"┣ 🔗 Enhanced clickable links\n"
                 f"┣ 🎁 Exclusive features\n"
                 f"┗ 👑 Priority support\n\n"
-                f"💰 **Special Price:** Only ₹15/month!\n"
+                f"💰 **Special Price:** Only ₹25/month!\n"
                 f"📞 **Contact:** @M4U_Admin_Bot"
             )
     
@@ -756,10 +756,10 @@ async def handle_callbacks(bot: Client, callback_query):
             "┣ 👑 **VIP** customer support\n"
             "┗ 🚀 **5x faster** processing speed\n\n"
             "💰 **Pricing:**\n"
-            "┣ **1 Month:** ₹15 only\n"
-            "┣ **3 Months:** ₹40 (Save ₹5)\n"
-            "┣ **6 Months:** ₹75 (Save ₹15)\n"
-            "┗ **1 Year:** ₹140 (Save ₹40)\n\n"
+            "┣ **1 Month:** 25 only\n"
+            "┣ **3 Months:** ₹70 (Save ₹5)\n"
+            "┣ **6 Months:** ₹125 (Save )\n"
+            "┗ **1 Year:** ₹250 (Save ₹50)\n\n"
             "📞 **How to Get Premium:**\n"
             "1. Contact our admin: @M4U_Admin_Bot\n"
             "2. Choose your subscription plan\n"
@@ -840,7 +840,7 @@ async def handle_callbacks(bot: Client, callback_query):
                     f"┣ 🔗 Enhanced clickable links\n"
                     f"┣ 🎁 Exclusive features\n"
                     f"┗ 👑 Priority support\n\n"
-                    f"💰 **Special Price:** Only ₹15/month!\n"
+                    f"💰 **Special Price:** Only ₹25/month!\n"
                     f"📞 **Contact:** @M4U_Admin_Bot"
                 )
         
@@ -947,7 +947,7 @@ async def handle_callbacks(bot: Client, callback_query):
             f"┣ 🎁 Exclusive features\n"
             f"┗ 👑 VIP support\n\n"
             f"🔥 **Join our community & get premium access!**\n"
-            f"💰 **Price:** Just ₹15 for 30 days unlimited access!\n\n"
+            f"💰 **Price:** Just ₹25 for 30 days unlimited access!\n\n"
             f"⚡ **Developer:** {make_clickable_link('Contact Here', 'https://t.me/M4U_Admin_Bot')}\n"
             f"📢 **Updates:** {make_clickable_link('Malli4U Official', 'https://t.me/Malli4U_Official2')}"
         )
@@ -1105,7 +1105,7 @@ async def handle_by(bot: Client, message: Message):
     # Rate limit for free users
     if not (user_manager.is_premium(uid) or user_manager.is_admin(message.from_user.id)):
         if user_manager.get_daily_usage(message.from_user.id) >= 3:
-            return await message.reply("⚠️ **Daily Limit Reached!** 😔\n\nYou have reached your daily limit of **3 links**.\n\n💎 **Get unlimited access with Premium!**\n┣ ♾️ Unlimited daily requests\n┣ ⚡ Priority processing\n┣ 🎬 Premium animations\n┣ 🔗 Enhanced clickable links\n┣ 💬 Private chat access\n┗ 👑 VIP support\n\n💰 **Price:** Only ₹15 for 30 days\n📞 **Contact:** @M4U_Admin_Bot", parse_mode=ParseMode.MARKDOWN)
+            return await message.reply("⚠️ **Daily Limit Reached!** 😔\n\nYou have reached your daily limit of **3 links**.\n\n💎 **Get unlimited access with Premium!**\n┣ ♾️ Unlimited daily requests\n┣ ⚡ Priority processing\n┣ 🎬 Premium animations\n┣ 🔗 Enhanced clickable links\n┣ 💬 Private chat access\n┗ 👑 VIP support\n\n💰 **Price:** Only ₹25 for 30 days\n📞 **Contact:** @M4U_Admin_Bot", parse_mode=ParseMode.MARKDOWN)
     
     # Extract season
     season = re.search(r"season\s*\d+", message.text, re.IGNORECASE)

@@ -158,7 +158,7 @@ if __name__ == "__main__":
                         f"**Bot ID:** `{me.id}`\n"
                         f"**Status:** Online ✅\n\n"
                         f"💎 **Premium Settings:**\n"
-                        f"┣ **Price:** ₹15 per month\n"
+                        f"┣ **Price:** ₹25 per month\n"
                         f"┣ **Free Limit:** 3 links/day\n"
                         f"┣ **Premium:** Unlimited\n"
                         f"┗ **Auto Reactions:** Active\n\n"
@@ -200,7 +200,7 @@ def main():
     print("=" * 60)
     print("🚀 Starting Advanced Bypass Bot")
     print("=" * 60)
-    print(f"💎 Premium: ₹15 for unlimited access")
+    print(f"💎 Premium: ₹25 for unlimited access")
     print(f"🆓 Free: 3 links per day")
     print(f"👨‍💻 Developer: @athithan_220")
     print(f"📞 Support: @ragnarlothbrockV")
