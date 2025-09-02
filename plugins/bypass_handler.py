@@ -359,8 +359,8 @@ async def handle_bypass_response(client, message):
         if original_link and bypassed_link:
             formatted_text = (
                 "✨ **Bypass Successful!** ✨\n\n"
-                f"**🔗 Original Link:** {make_clickable_link('🔗 Click Here', original_link)}\n\n"
-                f"**🚀 Bypassed Link:** {make_clickable_link('📥 Bypassed Link }', bypassed_link)}\n\n"
+                f"**🔗 Original Link:** {make_clickable_link ('Click Here', original_link)}\n\n"
+                f"**🚀 Bypassed Link:** {make_clickable_link ('Bypassed Link', bypassed_link)}\n\n"
                 f"⚡ **Powered by @Malli4U_Official2**\n"
                 f"🙍 **Requested by:** {req['user_id']}\n"
                 f"⏰ **Time:** {datetime.now().strftime('%H:%M:%S')}"
