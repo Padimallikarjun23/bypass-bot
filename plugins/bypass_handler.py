@@ -1087,6 +1087,21 @@ async def handle_by(bot: Client, message: Message):
     
     if not message.from_user:
         return await message.reply("❌ Cannot process message from anonymous user.")
+
+    # Check if the command has a link argument
+    if len(message.command) < 2:
+        return await message.reply("❌ Usage: `/by <link>`")
+    
+    # Get the link from the command
+    link = message.command[1]
+    
+    # Block softurl.in links
+    if "softurl.in" in link.lower():
+        return await message.reply(
+            "⚠️ **Softurl.in links are not supported!**\n\n"
+            "These links cannot be bypassed for security reasons.\n\n"
+            "📞 Contact admin for more information: @M4U_Admin_Bot"
+        )
     
     uid = str(message.from_user.id)
     chat_type = message.chat.type
