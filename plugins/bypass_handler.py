@@ -450,7 +450,7 @@ async def start_command(bot: Client, message: Message):
             InlineKeyboardButton("🌟 Features", callback_data="features")
         ],
         [
-            InlineKeyboardButton("👨‍💻 Developer", url="https://t.me/M4U_Admin_Bot"),
+            InlineKeyboardButton("👨‍💻 Developer", url="http://t.me/Malli4U_Admin_Bot"),
             InlineKeyboardButton("📢 Updates", url="https://t.me/Malli4U_Official2")
         ],
         [
