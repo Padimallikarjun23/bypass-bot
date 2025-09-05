@@ -409,7 +409,7 @@ async def handle_bypass_response(client, message):
         clickable = make_clickable_link(link_name, link_url)
         formatted.append(f"**{i}.** {clickable}\n")
     
-    formatted.append(f"\n⚡ **Powered by @M4U_Admin_Bot**\n👤 **Requested by:** {req['user_id']}\n⏰ **Time:** {datetime.now().strftime('%H:%M:%S')}")
+    formatted.append(f"\n⚡ **Powered by @Malli4U_Admin_Bot**\n👤 **Requested by:** {req['user_id']}\n⏰ **Time:** {datetime.now().strftime('%H:%M:%S')}")
     final_text = "\n".join(formatted)
     
     await safe_send_message(bot_instance, group_id, final_text, original_msg_id)
@@ -564,7 +564,7 @@ async def stats_command(bot: Client, message: Message):
     keyboard = InlineKeyboardMarkup([
         [
             InlineKeyboardButton("🔙 Back to Start", callback_data="back_start"),
-            InlineKeyboardButton("💎 Upgrade Premium", url="https://t.me/M4U_Admin_Bot")
+            InlineKeyboardButton("💎 Upgrade Premium", url="http://t.me/Malli4U_Admin_Bot")
         ]
     ])
     
@@ -631,7 +631,7 @@ async def stats_command(bot: Client, message: Message):
                 f"┣ 🎁 Exclusive features\n"
                 f"┗ 👑 Priority support\n\n"
                 f"💰 **Special Price:** Only ₹25/month!\n"
-                f"📞 **Contact:** @M4U_Admin_Bot"
+                f"📞 **Contact:** @Malli4U_Admin_Bot"
             )
     
     await safe_send_message(bot, message.chat.id, stats_text, reply_markup=keyboard)
@@ -645,7 +645,7 @@ async def commands_menu(bot: Client, message: Message):
     keyboard = InlineKeyboardMarkup([
         [
             InlineKeyboardButton("🔙 Back to Start", callback_data="back_start"),
-            InlineKeyboardButton("📞 Contact Support", url="https://t.me/M4U_Admin_Bot")
+            InlineKeyboardButton("📞 Contact Support", url="http://t.me/Malli4U_Admin_Bot")
         ]
     ])
     
@@ -695,7 +695,7 @@ async def commands_menu(bot: Client, message: Message):
         "┣ 🔗 Enhanced clickable links\n"
         "┣ 🎁 Exclusive features\n"
         "┗ 👑 Priority customer support\n\n"
-        "🆘 **Need Help?** Contact @M4U_Admin_Bot"
+        "🆘 **Need Help?** Contact @Malli4U_Admin_Bot"
     )
     
     await safe_send_message(bot, message.chat.id, commands_text, reply_markup=keyboard)
@@ -765,7 +765,7 @@ async def handle_callbacks(bot: Client, callback_query):
             "┗ **1 Year :** ₹250 → ₹0.68/day | 🏆 Save ₹50\n\n"
             
             "📞 **How to Get Premium:**\n"
-            "1. Contact our admin: @M4U_Admin_Bot\n"
+            "1. Contact our admin: @Malli4U_Admin_Bot\n"
             "2. Choose your subscription plan\n"
             "3. Make payment (UPI/PayTM/GPay)\n"
             "4. Get instant premium activation!\n\n"
@@ -775,7 +775,7 @@ async def handle_callbacks(bot: Client, callback_query):
         
         premium_keyboard = InlineKeyboardMarkup([
             [
-                InlineKeyboardButton("💎 Buy Premium", url="https://t.me/M4U_Admin_Bot"),
+                InlineKeyboardButton("💎 Buy Premium", url="http://t.me/Malli4U_Admin_Bot"),
                 InlineKeyboardButton("🔙 Back", callback_data="back_start")
             ]
         ])
@@ -916,11 +916,11 @@ async def handle_callbacks(bot: Client, callback_query):
                 InlineKeyboardButton("🌟 Features", callback_data="features")
             ],
             [
-                InlineKeyboardButton("👨‍💻 Developer", url="https://t.me/M4U_Admin_Bot"),
+                InlineKeyboardButton("👨‍💻 Developer", url="http://t.me/Malli4U_Admin_Bot"),
                 InlineKeyboardButton("📢 Updates", url="https://t.me/Malli4U_Official2")
             ],
             [
-                InlineKeyboardButton("🆘 Support", url="https://t.me/M4U_Admin_Bot")
+                InlineKeyboardButton("🆘 Support", url="http://t.me/Malli4U_Admin_Bot")
             ]
         ])
         
@@ -952,7 +952,7 @@ async def handle_callbacks(bot: Client, callback_query):
             f"┗ 👑 VIP support\n\n"
             f"🔥 **Join our community & get premium access!**\n"
             f"💰 **Price:** Just ₹25 for 30 days unlimited access!\n\n"
-            f"⚡ **Developer:** {make_clickable_link('Contact Here', 'https://t.me/M4U_Admin_Bot')}\n"
+            f"⚡ **Developer:** {make_clickable_link('Contact Here', 'http://t.me/Malli4U_Admin_Bot')}\n"
             f"📢 **Updates:** {make_clickable_link('Malli4U Official', 'https://t.me/Malli4U_Official2')}"
         )
         
@@ -1019,7 +1019,7 @@ async def handle_ban_user(bot: Client, message: Message):
     await safe_send_message(
         bot,
         user_id,
-        "🚫 **You have been banned from using this bot.**\n\nIf you think this is a mistake, contact admin at @M4U_Admin_Bot"
+        "🚫 **You have been banned from using this bot.**\n\nIf you think this is a mistake, contact admin at @Malli4U_Admin_Bot"
     )
 
 @Client.on_message(filters.command(["unban"]) & filters.user(ADMIN_ID))
@@ -1100,7 +1100,7 @@ async def handle_by(bot: Client, message: Message):
         return await message.reply(
             "⚠️ **Softurl.in links are not supported!**\n\n"
             "These links cannot be bypassed for security reasons.\n\n"
-            "📞 Contact admin for more information: @M4U_Admin_Bot"
+            "📞 Contact admin for more information: @Malli4U_Admin_Bot"
         )
     
     uid = str(message.from_user.id)
@@ -1124,7 +1124,7 @@ async def handle_by(bot: Client, message: Message):
     # Rate limit for free users
     if not (user_manager.is_premium(uid) or user_manager.is_admin(message.from_user.id)):
         if user_manager.get_daily_usage(message.from_user.id) >= 3:
-            return await message.reply("⚠️ **Daily Limit Reached!** 😔\n\nYou have reached your daily limit of **3 links**.\n\n💎 **Get unlimited access with Premium!**\n┣ ♾️ Unlimited daily requests\n┣ ⚡ Priority processing\n┣ 🎬 Premium animations\n┣ 🔗 Enhanced clickable links\n┣ 💬 Private chat access\n┗ 👑 VIP support\n\n💰 **Price:** Only ₹25 for 30 days\n📞 **Contact:** @M4U_Admin_Bot", parse_mode=ParseMode.MARKDOWN)
+            return await message.reply("⚠️ **Daily Limit Reached!** 😔\n\nYou have reached your daily limit of **3 links**.\n\n💎 **Get unlimited access with Premium!**\n┣ ♾️ Unlimited daily requests\n┣ ⚡ Priority processing\n┣ 🎬 Premium animations\n┣ 🔗 Enhanced clickable links\n┣ 💬 Private chat access\n┗ 👑 VIP support\n\n💰 **Price:** Only ₹25 for 30 days\n📞 **Contact:** @Malli4U_Admin_Bot", parse_mode=ParseMode.MARKDOWN)
     
     # Extract season
     season = re.search(r"season\s*\d+", message.text, re.IGNORECASE)
@@ -1157,7 +1157,7 @@ async def handle_by(bot: Client, message: Message):
     except Exception as e:
         print(f"[DEBUG] Error sending message: {e}")
         await status_msg.delete()
-        return await message.reply("❌ **Request Failed**\n\nCould not send bypass request. Please try again later.\n\n🆘 **Support:** @M4U_Admin_Bot", parse_mode=ParseMode.MARKDOWN)
+        return await message.reply("❌ **Request Failed**\n\nCould not send bypass request. Please try again later.\n\n🆘 **Support:** @Malli4U_Admin_Bot", parse_mode=ParseMode.MARKDOWN)
     
     if not (user_manager.is_premium(uid) or user_manager.is_admin(message.from_user.id)):
         user_manager.increment_usage(message.from_user.id)
