@@ -548,7 +548,7 @@ async def help_command(bot: Client, message: Message):
         "┣ 🎁 Exclusive features\n"
         "┗ 👑 Priority support\n\n"
         "🆘 **Need More Help?**\n"
-        "Contact our support: @M4U_Admin_Bot"
+        "Contact our support: @Malli4U_Admin_Bot"
     )
     
     await safe_send_message(bot, message.chat.id, help_text, reply_markup=keyboard)
@@ -738,7 +738,7 @@ async def handle_callbacks(bot: Client, callback_query):
             "┣ 🔗 All links are clickable\n"
             "┣ ⏱️ Time stamps for results\n"
             "┗ 🚀 Lightning fast processing\n\n"
-            "🆘 **Need Help?** Contact @M4U_Admin_Bot"
+            "🆘 **Need Help?** Contact @Malli4U_Admin_Bot"
         )
         
         await safe_edit_message(bot, message.chat.id, message.id, how_to_text, back_keyboard)
@@ -770,7 +770,7 @@ async def handle_callbacks(bot: Client, callback_query):
             "3. Make payment (UPI/PayTM/GPay)\n"
             "4. Get instant premium activation!\n\n"
             "🎉 **Special Offer:** First-time users get 3 extra days FREE!\n\n"
-            "🆘 **Questions?** Contact @M4U_Admin_Bot"
+            "🆘 **Questions?** Contact @Malli4U_Admin_Bot"
         )
         
         premium_keyboard = InlineKeyboardMarkup([
@@ -845,7 +845,7 @@ async def handle_callbacks(bot: Client, callback_query):
                     f"┣ 🎁 Exclusive features\n"
                     f"┗ 👑 Priority support\n\n"
                     f"💰 **Special Price:** Only ₹25/month!\n"
-                    f"📞 **Contact:** @M4U_Admin_Bot"
+                    f"📞 **Contact:** @Malli4U_Admin_Bot"
                 )
         
         await safe_edit_message(bot, message.chat.id, message.id, stats_text, back_keyboard)
