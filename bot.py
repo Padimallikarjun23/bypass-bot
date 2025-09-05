@@ -440,8 +440,8 @@ async def start_command(bot: Client, message: Message):
             InlineKeyboardButton("📢 Updates", url="https://t.me/Malli4U_Official2")
         ],
         [
-            InlineKeyboardButton("👨‍💻 Developer", url="https://t.me/M4U_Admin_Bot"),
-            InlineKeyboardButton("🆘 Support", url="https://t.me/M4U_Admin_Bot")
+            InlineKeyboardButton("👨‍💻 Developer", url="http://t.me/Malli4U_Admin_Bot"),
+            InlineKeyboardButton("🆘 Support", url="http://t.me/Malli4U_Admin_Bot")
         ]
     ])
     
@@ -516,7 +516,7 @@ async def help_command(bot: Client, message: Message):
         ],
         [
             InlineKeyboardButton("🔙 Back to Start", callback_data=f"back_to_start_{session_id}"),
-            InlineKeyboardButton("💎 Get Premium", url="https://t.me/M4U_Admin_Bot")
+            InlineKeyboardButton("💎 Get Premium", url="http://t.me/Malli4U_Admin_Bot")
         ]
     ])
     
@@ -580,7 +580,7 @@ async def stats_command(bot: Client, message: Message):
         ],
         [
             InlineKeyboardButton("🔙 Back to Start", callback_data=f"back_to_start_{session_id}"),
-            InlineKeyboardButton("💎 Upgrade Premium", url="https://t.me/M4U_Admin_Bot")
+            InlineKeyboardButton("💎 Upgrade Premium", url="http://t.me/Malli4U_Admin_Bot")
         ]
     ])
     
