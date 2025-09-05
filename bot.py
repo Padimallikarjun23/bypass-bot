@@ -481,7 +481,7 @@ async def start_command(bot: Client, message: Message):
         f"┗ 👑 VIP support\n\n"
         f"🔥 **Join our community & get premium access!**\n"
         f"💰 **Price:** Just ₹25 for 30 days unlimited access!\n\n"
-        f"⚡ **Developer:** @M4U_Admin_Bot\n"
+        f"⚡ **Developer:** http://t.me/Malli4U_Admin_Bot\n"
         f"📢 **Updates:** {make_clickable_link('Malli4U Official', 'https://t.me/Malli4U_Official2')}"
     )
     
