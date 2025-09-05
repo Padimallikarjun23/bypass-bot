@@ -91,7 +91,7 @@ class BypassBot(Client):
             try:
                 await self.send_message(
                     chat_id=OWNER_ID,
-                    text="<b>✅ Bypass Bot Started Successfully!</b>\n\nDeveloped by @athithan_220"
+                    text="<b>✅ Bypass Bot Started Successfully!</b>\n\nDeveloped by @Malli4U_Admin_Bot"
                 )
             except Exception as e:
                 logger.error(f"Failed to send startup message: {e}")
