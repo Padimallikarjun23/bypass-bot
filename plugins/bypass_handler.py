@@ -56,7 +56,7 @@ async def animate_processing_message(message, duration=15):
         for i in range(duration):
             emoji = LOADING_EMOJIS[i % len(LOADING_EMOJIS)]
             dots = "." * (i % 4)
-            text = f"{emoji} Bypassing your link{dots}\n\n🎯 **Status:** Processing...\n⏱️ **Time:** {i+1}s\n🔥 **Please wait patiently!**"
+            text = f"{emoji} Bypassing your links{dots}\n\n🎯 **Status:** Processing...\n⏱️ **Time:** {i+1}s\n🔥 **Please wait patiently!**"
             
             try:
                 await message.edit_text(text, parse_mode=ParseMode.MARKDOWN)
@@ -112,6 +112,23 @@ def make_clickable_link(text, url):
     
     # Return markdown link format
     return f"[{safe_text}]({clean_url})"
+
+def extract_multiple_links(text):
+    """Extract multiple links from text - supports comma, space, and newline separation"""
+    # Remove command prefix
+    text = re.sub(r'^/by\s*|^!by\s*', '', text, flags=re.IGNORECASE).strip()
+    
+    # Find all URLs in the text
+    urls = re.findall(r'https?://[^\s,\n]+', text)
+    
+    # Clean URLs (remove trailing punctuation)
+    cleaned_urls = []
+    for url in urls:
+        url = re.sub(r'[,\.\)]+$', '', url)
+        if url:
+            cleaned_urls.append(url)
+    
+    return cleaned_urls
 
 async def init_user_client():
     global user_client
@@ -270,6 +287,35 @@ def extract_links_from_text_and_buttons(text, reply_markup):
     
     return bypassed_links, title, size
 
+def parse_multi_link_response(text):
+    """Parse multi-link response from DD bypass bot"""
+    results = []
+    
+    # Split response by the separator
+    sections = text.split("━━━━━━━✦✗✦━━━━━━━")
+    
+    for section in sections:
+        section = section.strip()
+        if not section:
+            continue
+            
+        original_link = ""
+        bypassed_link = ""
+        
+        # Extract original and bypassed links from each section
+        for line in section.splitlines():
+            line = line.strip()
+            if "🔗 Original Link" in line and ":-" in line:
+                original_link = line.split(":-", 1)[1].strip()
+            elif "🔓 Bypassed Link" in line and ":" in line:
+                bypassed_link = line.split(":", 1)[1].strip()
+        
+        if original_link and bypassed_link:
+            results.append((original_link, bypassed_link))
+            print(f"[DEBUG] Parsed link pair: {original_link} -> {bypassed_link}")
+    
+    return results
+
 @user_client.on_message()
 async def handle_bypass_response(client, message):
     if not message.chat or message.chat.username != BYPASS_BOT_USERNAME.lstrip("@"):
@@ -280,16 +326,17 @@ async def handle_bypass_response(client, message):
     # Progress update with animation
     if "Bypassing" in text:
         for req in pending_bypass_requests.values():
-            if req["original_link"] in text and req.get("status_msg"):
+            if any(link in text for link in req["original_link"].split()) and req.get("status_msg"):
                 try:
                     emoji = LOADING_EMOJIS[0]
-                    await req["status_msg"].edit_text(f"{emoji} **Bot is processing your link...**\n\n🔄 **Status:** In Progress\n⏰ **Please wait...**", parse_mode=ParseMode.MARKDOWN)
+                    await req["status_msg"].edit_text(f"{emoji} **Bot is processing your links...**\n\n🔄 **Status:** In Progress\n⏰ **Please wait...**", parse_mode=ParseMode.MARKDOWN)
                 except:
                     pass
         return
     
     is_final_result = False
     should_forward = False
+    is_multi_link = False
     
     if text:
         if "┎ 📚 Title" in text and "┠ 💾 Size" in text:
@@ -299,7 +346,12 @@ async def handle_bypass_response(client, message):
         elif "┎ 🔗 Original Link" in text and "🔓 Bypassed Link" in text:
             is_final_result = True
             should_forward = False
-            print("[DEBUG] Found bypass link format - will extract and reformat")
+            # Check if it's multi-link response
+            if text.count("━━━━━━━✦✗✦━━━━━━━") > 0:
+                is_multi_link = True
+                print("[DEBUG] Found multi-link bypass format")
+            else:
+                print("[DEBUG] Found single bypass link format")
     
     if not is_final_result:
         return
@@ -307,7 +359,8 @@ async def handle_bypass_response(client, message):
     # Match request
     matching_id = None
     for rid, req in pending_bypass_requests.items():
-        if req["original_link"] in text:
+        original_links = req["original_link"].split()
+        if any(link in text for link in original_links):
             matching_id = rid
             break
     
@@ -344,7 +397,34 @@ async def handle_bypass_response(client, message):
             return
         print("[DEBUG] Forward failed, will format manually")
     
-    # For bypass link format or if forwarding fails, extract and reformat with CLICKABLE LINKS
+    # Handle multi-link response
+    if is_multi_link:
+        link_pairs = parse_multi_link_response(text)
+        if link_pairs:
+            formatted_sections = []
+            
+            for i, (original, bypassed) in enumerate(link_pairs, 1):
+                section = (
+                    f"**🔗 Link {i}:**\n"
+                    f"**Original:** {make_clickable_link('Click Here', original)}\n"
+                    f"**Bypassed:** {make_clickable_link('Bypassed Link', bypassed)}\n"
+                )
+                formatted_sections.append(section)
+            
+            formatted_text = (
+                f"🎉 **Multi-Link Bypass Successful!** 🎉\n\n"
+                f"**📊 Total Links:** {len(link_pairs)}\n\n"
+                + "\n━━━━━━━━━━━━━━━━━━━━\n\n".join(formatted_sections) +
+                f"\n\n⚡ **Powered by @Malli4U_Official2**\n"
+                f"👤 **Requested by:** {req['user_id']}\n"
+                f"⏰ **Time:** {datetime.now().strftime('%H:%M:%S')}"
+            )
+            
+            await safe_send_message(bot_instance, group_id, formatted_text, original_msg_id)
+            print(f"[DEBUG] Successfully sent multi-link bypass result with {len(link_pairs)} links")
+            return
+    
+    # Handle single link response (existing code)
     if "┎ 🔗 Original Link" in text and "🔓 Bypassed Link" in text:
         original_link = ""
         bypassed_link = ""
@@ -359,8 +439,8 @@ async def handle_bypass_response(client, message):
         if original_link and bypassed_link:
             formatted_text = (
                 "✨ **Bypass Successful!** ✨\n\n"
-                f"**🔗 Original Link:** {make_clickable_link ('Click Here', original_link)}\n\n"
-                f"**🚀 Bypassed Link:** {make_clickable_link ('Bypassed Link', bypassed_link)}\n\n"
+                f"**🔗 Original Link:** {make_clickable_link('Click Here', original_link)}\n\n"
+                f"**🚀 Bypassed Link:** {make_clickable_link('Bypassed Link', bypassed_link)}\n\n"
                 f"⚡ **Powered by @Malli4U_Official2**\n"
                 f"🙍 **Requested by:** {req['user_id']}\n"
                 f"⏰ **Time:** {datetime.now().strftime('%H:%M:%S')}"
@@ -464,7 +544,7 @@ async def start_command(bot: Client, message: Message):
         f"{status_emoji} **Your Status:** {status_text}\n"
         f"📈 **Today's Usage:** {usage_text} requests\n\n"
         f"✨ **What I Can Do:**\n"
-        f"┣ 🔓 Bypass any shortened links instantly\n"
+        f"┣ 🔓 Bypass single or multiple shortened links\n"
         f"┣ 🎬 Animated processing with status updates\n"
         f"┣ 🔗 Generate clickable download links\n"
         f"┣ 💎 Premium subscription system\n"
@@ -473,7 +553,8 @@ async def start_command(bot: Client, message: Message):
         f"┣ 🎨 Beautiful formatted results\n"
         f"┗ ⚡ Lightning fast processing\n\n"
         f"🎮 **Available Commands:**\n"
-        f"┣ `/by <link>` - Bypass any shortened link\n"
+        f"┣ `/by <link>` - Bypass single shortened link\n"
+        f"┣ `/by <link1>, <link2>` - Bypass multiple links\n"
         f"┣ `/help` - Show detailed help guide\n"
         f"┣ `/stats` - View your statistics\n"
         f"┣ `/commands` - Show all commands\n"
@@ -516,15 +597,19 @@ async def help_command(bot: Client, message: Message):
     help_text = (
         "📚 **Detailed Help Guide** 📚\n\n"
         "🎯 **How to Use Bypass Bot:**\n\n"
-        "**Step 1:** Copy any shortened link\n"
+        "**Step 1:** Copy any shortened link(s)\n"
         "**Step 2:** Send `/by <your_link>` command\n"
         "**Step 3:** Watch the animated processing\n"
         "**Step 4:** Get clickable download links!\n\n"
-        "📝 **Example Commands:**\n"
+        "📝 **Single Link Examples:**\n"
         "┣ `/by https://bit.ly/example123`\n"
         "┣ `/by https://tinyurl.com/sample`\n"
         "┣ `/by https://short.link/abc`\n"
         "┗ `/by https://ouo.io/xyz`\n\n"
+        "🔗 **Multi-Link Examples:**\n"
+        "┣ `/by https://bit.ly/link1, https://tinyurl.com/link2`\n"
+        "┣ `/by https://short.link/abc https://ouo.io/xyz`\n"
+        "┗ **Separate links with commas or spaces**\n\n"
         "🔗 **Supported Link Types:**\n"
         "┣ bit.ly, tinyurl.com, short.link\n"
         "┣ t.ly, linkvertise, adfly\n"
@@ -533,12 +618,13 @@ async def help_command(bot: Client, message: Message):
         "💡 **Pro Tips:**\n"
         "┣ ✅ All results have clickable links\n"
         "┣ ✅ Works in both private chat and groups\n"
+        "┣ ✅ Multi-link support for batch processing\n"
         "┣ ✅ Animated status shows real-time progress\n"
         "┣ ✅ Premium users get private chat access\n"
         "┣ ✅ Check `/stats` for daily usage info\n"
         "┗ ✅ Join our support channel for updates\n\n"
         "⚠️ **Free User Limits:**\n"
-        "┣ 📊 3 bypass requests per day\n"
+        "┣ 📊 3 bypass requests per day (regardless of links count)\n"
         "┣ 🚫 No private chat access\n"
         "┗ ⏰ Standard processing speed\n\n"
         "💎 **Premium Benefits:**\n"
@@ -582,6 +668,7 @@ async def stats_command(bot: Client, message: Message):
             f"┣ 🔑 **Access Level:** Full Control\n"
             f"┣ 📈 **Performance:** Optimal\n"
             f"┣ 🎬 **Animations:** Active\n"
+            f"┣ 🔗 **Multi-Link Support:** Enabled\n"
             f"┣ 🔗 **Clickable Links:** Enabled\n"
             f"┗ 🎯 **Bypass System:** Operational\n\n"
             f"🛠️ **Management:**\n"
@@ -617,6 +704,7 @@ async def stats_command(bot: Client, message: Message):
                     f"┣ ⚡ Priority processing\n"
                     f"┣ 💬 Private chat access\n"
                     f"┣ 🎬 Premium animations\n"
+                    f"┣ 🔗 Multi-link support\n"
                     f"┣ 🔗 Enhanced clickable links\n"
                     f"┗ 👑 VIP support"
                 )
@@ -627,6 +715,7 @@ async def stats_command(bot: Client, message: Message):
                 f"┣ ⚡ 5x faster processing\n"
                 f"┣ 💬 Private chat access\n"
                 f"┣ 🎬 Premium animations\n"
+                f"┣ 🔗 Multi-link support\n"
                 f"┣ 🔗 Enhanced clickable links\n"
                 f"┣ 🎁 Exclusive features\n"
                 f"┗ 👑 Priority support\n\n"
@@ -655,7 +744,8 @@ async def commands_menu(bot: Client, message: Message):
         "📋 **Complete Commands List** 📋\n\n"
         "👥 **User Commands:**\n"
         "┣ `/start` - Show welcome menu\n"
-        "┣ `/by <link>` - Bypass shortened links\n"
+        "┣ `/by <link>` - Bypass single link\n"
+        "┣ `/by <link1>, <link2>` - Bypass multiple links\n"
         "┣ `/help` - Show detailed help\n"
         "┣ `/stats` - View your statistics\n"
         "┣ `/commands` - Show this commands list\n"
@@ -663,7 +753,8 @@ async def commands_menu(bot: Client, message: Message):
         "💡 **Usage Examples:**\n"
         "┣ `/by https://bit.ly/example123`\n"
         "┣ `/by https://tinyurl.com/sample`\n"
-        "┗ `/by https://short.link/abc`\n\n"
+        "┣ `/by https://bit.ly/link1, https://short.link/link2`\n"
+        "┗ `/by https://ouo.io/abc https://gplinks.co/xyz`\n\n"
     )
     
     if is_admin:
@@ -692,6 +783,7 @@ async def commands_menu(bot: Client, message: Message):
         "┣ ⚡ Lightning fast processing\n"
         "┣ 💬 Private chat support\n"
         "┣ 🎬 Premium animations\n"
+        "┣ 🔗 Multi-link bypass support\n"
         "┣ 🔗 Enhanced clickable links\n"
         "┣ 🎁 Exclusive features\n"
         "┗ 👑 Priority customer support\n\n"
@@ -716,25 +808,32 @@ async def handle_callbacks(bot: Client, callback_query):
         how_to_text = (
             "🎯 **How to Use Guide** 🎯\n\n"
             "**Step-by-Step Instructions:**\n\n"
-            "**1.** Copy any shortened link you want to bypass\n"
-            "**2.** Send the command: `/by <your_link>`\n"
+            "**1.** Copy any shortened link(s) you want to bypass\n"
+            "**2.** Send the command: `/by <your_link(s)>`\n"
             "**3.** Enjoy the animated processing status!\n"
             "**4.** Get clickable download links!\n\n"
-            "📝 **Real Examples:**\n"
+            "📝 **Single Link Examples:**\n"
             "┣ `/by https://bit.ly/3ABC123`\n"
             "┣ `/by https://tinyurl.com/example`\n"
             "┣ `/by https://short.link/demo123`\n"
             "┗ `/by https://ouo.io/abcdef`\n\n"
+            "🔗 **Multi-Link Examples:**\n"
+            "┣ `/by https://bit.ly/link1, https://tinyurl.com/link2`\n"
+            "┣ `/by https://short.link/abc https://ouo.io/xyz`\n"
+            "┣ **Separate with commas or spaces**\n"
+            "┗ **Process multiple links in one request!**\n\n"
             "✅ **What You'll Get:**\n"
             "┣ 📂 Clickable GoFile links\n"
             "┣ 📦 Clickable Mega links\n" 
             "┣ ☁️ Clickable Telegram links\n"
             "┣ 🎥 Clickable stream links\n"
+            "┣ 🔗 Multi-link organized results\n"
             "┗ 🔗 All links are clickable!\n\n"
             "⚡ **Amazing Features:**\n"
             "┣ 🎬 Animated processing status\n"
             "┣ 💫 Real-time progress updates\n"
             "┣ 🎨 Beautiful result formatting\n"
+            "┣ 🔗 Multi-link batch processing\n"
             "┣ 🔗 All links are clickable\n"
             "┣ ⏱️ Time stamps for results\n"
             "┗ 🚀 Lightning fast processing\n\n"
@@ -751,19 +850,16 @@ async def handle_callbacks(bot: Client, callback_query):
             "┣ ⚡ **Priority** processing queue\n"
             "┣ 💬 **Private chat** access allowed\n"
             "┣ 🎬 **Premium** animations & effects\n"
+            "┣ 🔗 **Multi-link** batch processing\n"
             "┣ 🔗 **Enhanced** clickable links\n"
             "┣ 🎁 **Exclusive** features access\n"
             "┣ 👑 **VIP** customer support\n"
             "┗ 🚀 **5x faster** processing speed\n\n"
             "💰 **Pricing:**\n"
             "┣ **1 Month :** ₹25 → ₹0.83/day\n"
-            
             "┣ **3 Months :** ₹70 → ₹0.78/day | 💸 Save ₹5\n"
-            
             "┣ **6 Months :** ₹125 → ₹0.69/day | 💸 Save ₹25\n"
-            
             "┗ **1 Year :** ₹250 → ₹0.68/day | 🏆 Save ₹50\n\n"
-            
             "📞 **How to Get Premium:**\n"
             "1. Contact our admin: @Malli4U_Admin_Bot\n"
             "2. Choose your subscription plan\n"
@@ -797,6 +893,7 @@ async def handle_callbacks(bot: Client, callback_query):
                 f"┣ 🔑 **Access Level:** Full Control\n"
                 f"┣ 📈 **Performance:** Optimal\n"
                 f"┣ 🎬 **Animations:** Active\n"
+                f"┣ 🔗 **Multi-Link Support:** Enabled\n"
                 f"┣ 🔗 **Clickable Links:** Enabled\n"
                 f"┗ 🎯 **Bypass System:** Operational\n\n"
                 f"🛠️ **Available Commands:**\n"
@@ -831,6 +928,7 @@ async def handle_callbacks(bot: Client, callback_query):
                         f"┣ ⚡ Priority processing\n"
                         f"┣ 💬 Private chat access\n"
                         f"┣ 🎬 Premium animations\n"
+                        f"┣ 🔗 Multi-link support\n"
                         f"┣ 🔗 Enhanced clickable links\n"
                         f"┗ 👑 VIP support"
                     )
@@ -841,6 +939,7 @@ async def handle_callbacks(bot: Client, callback_query):
                     f"┣ ⚡ 5x faster processing\n"
                     f"┣ 💬 Private chat access\n"
                     f"┣ 🎬 Premium animations\n"
+                    f"┣ 🔗 Multi-link support\n"
                     f"┣ 🔗 Enhanced clickable links\n"
                     f"┣ 🎁 Exclusive features\n"
                     f"┗ 👑 Priority support\n\n"
@@ -864,14 +963,16 @@ async def handle_callbacks(bot: Client, callback_query):
             "┣ ⏱️ Lightning fast bypassing\n"
             "┣ 🔗 100+ supported shorteners\n"
             "┣ 📊 Advanced link detection\n"
+            "┣ 🔗 Multi-link batch processing\n"
             "┣ 🛡️ Robust error handling\n"
             "┣ 🔄 Auto-retry on failures\n"
             "┗ 🎯 99% success rate\n\n"
             "👥 **User Experience:**\n"
             "┣ 📱 Works in groups & private\n"
-            "┣ 🆓 Free tier with 3 daily links\n"
+            "┣ 🆓 Free tier with 3 daily requests\n"
             "┣ 💎 Premium unlimited access\n"
             "┣ 📈 Usage tracking & stats\n"
+            "┣ 🔗 Multi-link support\n"
             "┣ 🔗 All links are clickable\n"
             "┗ 🆘 24/7 support available\n\n"
             "🔧 **Technical Features:**\n"
@@ -886,6 +987,7 @@ async def handle_callbacks(bot: Client, callback_query):
             "┣ ⚡ Priority processing queue\n"
             "┣ 💬 Private chat access\n"
             "┣ 🎁 Exclusive animations\n"
+            "┣ 🔗 Multi-link batch processing\n"
             "┣ 🔗 Enhanced link formatting\n"
             "┗ 👑 VIP support channel"
         )
@@ -930,7 +1032,7 @@ async def handle_callbacks(bot: Client, callback_query):
             f"{status_emoji} **Your Status:** {status_text}\n"
             f"📈 **Today's Usage:** {usage_text} requests\n\n"
             f"✨ **What I Can Do:**\n"
-            f"┣ 🔓 Bypass any shortened links instantly\n"
+            f"┣ 🔓 Bypass single or multiple shortened links\n"
             f"┣ 🎬 Animated processing with status updates\n"
             f"┣ 🔗 Generate clickable download links\n"
             f"┣ 💎 Premium subscription system\n"
@@ -939,7 +1041,8 @@ async def handle_callbacks(bot: Client, callback_query):
             f"┣ 🎨 Beautiful formatted results\n"
             f"┗ ⚡ Lightning fast processing\n\n"
             f"🎮 **Available Commands:**\n"
-            f"┣ `/by <link>` - Bypass any shortened link\n"
+            f"┣ `/by <link>` - Bypass single link\n"
+            f"┣ `/by <link1>, <link2>` - Bypass multiple links\n"
             f"┣ `/help` - Show detailed help guide\n"
             f"┣ `/stats` - View your statistics\n"
             f"┣ `/commands` - Show all commands\n"
@@ -978,7 +1081,7 @@ async def handle_add_premium(bot: Client, message: Message):
         await safe_send_message(
             bot,
             user_id,
-            f"🎉 **Premium Activated!** 🎉\n\n💎 You are now a Premium User for {days} days!\n\n🎁 **Your Benefits:**\n┣ ♾️ Unlimited daily requests\n┣ ⚡ Priority processing\n┣ 💬 Private chat access\n┣ 🎬 Premium animations\n┣ 🔗 Enhanced clickable links\n┗ 👑 VIP support\n\n📞 Support: @M4U_Admin_Bot"
+            f"🎉 **Premium Activated!** 🎉\n\n💎 You are now a Premium User for {days} days!\n\n🎁 **Your Benefits:**\n┣ ♾️ Unlimited daily requests\n┣ ⚡ Priority processing\n┣ 💬 Private chat access\n┣ 🎬 Premium animations\n┣ 🔗 Multi-link support\n┣ 🔗 Enhanced clickable links\n┗ 👑 VIP support\n\n📞 Support: @M4U_Admin_Bot"
         )
     else:
         await message.reply(f"ℹ️ User `{user_id}` is already a premium user.")
@@ -1079,7 +1182,7 @@ async def handle_broadcast(bot: Client, message: Message):
     
     await status_msg.edit_text(f"📡 **Broadcast Complete!**\n\n✅ **Successfully sent:** {success_count}\n❌ **Failed:** {failed_count}\n📊 **Total users:** {total_users}")
 
-# Main Bypass Handler with Enhanced Clickable Links
+# ENHANCED Main Bypass Handler with Multi-Link Support
 @Client.on_message(filters.command(["by", "!by"]))
 async def handle_by(bot: Client, message: Message):
     global bot_instance
@@ -1088,15 +1191,32 @@ async def handle_by(bot: Client, message: Message):
     if not message.from_user:
         return await message.reply("❌ Cannot process message from anonymous user.")
 
-    # Check if the command has a link argument
+    # Check if the command has link argument(s)
     if len(message.command) < 2:
-        return await message.reply("❌ Usage: `/by <link>`")
+        return await message.reply(
+            "❌ **Usage:**\n\n"
+            "**Single Link:** `/by <link>`\n"
+            "**Multiple Links:** `/by <link1>, <link2>, <link3>`\n\n"
+            "📝 **Example:** `/by https://bit.ly/link1, https://tinyurl.com/link2`"
+        )
     
-    # Get the link from the command
-    link = message.command[1]
+    # Extract multiple links from the message text
+    text = message.text.replace("/by", "").replace("!by", "").strip()
+    urls = extract_multiple_links(message.text)
+    
+    if not urls:
+        return await message.reply(
+            "❌ **Invalid Link Format**\n\n"
+            "Please provide valid link(s) after the `/by` command.\n\n"
+            "📝 **Examples:**\n"
+            "┣ `/by https://bit.ly/example`\n"
+            "┣ `/by https://bit.ly/link1, https://tinyurl.com/link2`\n"
+            "┗ `/by https://short.link/abc https://ouo.io/xyz`",
+            parse_mode=ParseMode.MARKDOWN
+        )
     
     # Block softurl.in links
-    if "softurl.in" in link.lower():
+    if any("softurl.in" in url.lower() for url in urls):
         return await message.reply(
             "⚠️ **Softurl.in links are not supported!**\n\n"
             "These links cannot be bypassed for security reasons.\n\n"
@@ -1109,7 +1229,11 @@ async def handle_by(bot: Client, message: Message):
     # Permission check with better error handling
     if chat_type == "private":
         if not (user_manager.is_premium(uid) or user_manager.is_admin(message.from_user.id)):
-            return await message.reply("❌ **Private Chat Access Restricted**\n\nOnly premium users and admin can use this bot in private chat.\n\n💎 **Get Premium:** @M4U_Admin_Bot", parse_mode=ParseMode.MARKDOWN)
+            return await message.reply(
+                "❌ **Private Chat Access Restricted**\n\n"
+                "Only premium users and admin can use this bot in private chat.\n\n💎 **Get Premium:** @M4U_Admin_Bot", 
+                parse_mode=ParseMode.MARKDOWN
+            )
         group_id = message.chat.id
     else:
         # FIXED: Better group validation with error handling
@@ -1121,10 +1245,24 @@ async def handle_by(bot: Client, message: Message):
             print(f"[DEBUG] Error checking group ID: {e}")
             return
     
-    # Rate limit for free users
+    # Rate limit for free users (counts as 1 request regardless of number of links)
     if not (user_manager.is_premium(uid) or user_manager.is_admin(message.from_user.id)):
         if user_manager.get_daily_usage(message.from_user.id) >= 3:
-            return await message.reply("⚠️ **Daily Limit Reached!** 😔\n\nYou have reached your daily limit of **3 links**.\n\n💎 **Get unlimited access with Premium!**\n┣ ♾️ Unlimited daily requests\n┣ ⚡ Priority processing\n┣ 🎬 Premium animations\n┣ 🔗 Enhanced clickable links\n┣ 💬 Private chat access\n┗ 👑 VIP support\n\n💰 **Price:** Only ₹25 for 30 days\n📞 **Contact:** @Malli4U_Admin_Bot", parse_mode=ParseMode.MARKDOWN)
+            return await message.reply(
+                "⚠️ **Daily Limit Reached!** 😔\n\n"
+                "You have reached your daily limit of **3 requests**.\n\n"
+                "💎 **Get unlimited access with Premium!**\n"
+                "┣ ♾️ Unlimited daily requests\n"
+                "┣ ⚡ Priority processing\n"
+                "┣ 🎬 Premium animations\n"
+                "┣ 🔗 Multi-link support\n"
+                "┣ 🔗 Enhanced clickable links\n"
+                "┣ 💬 Private chat access\n"
+                "┗ 👑 VIP support\n\n"
+                "💰 **Price:** Only ₹25 for 30 days\n"
+                "📞 **Contact:** @Malli4U_Admin_Bot", 
+                parse_mode=ParseMode.MARKDOWN
+            )
     
     # Extract season
     season = re.search(r"season\s*\d+", message.text, re.IGNORECASE)
@@ -1133,40 +1271,49 @@ async def handle_by(bot: Client, message: Message):
         season_store[key] = season.group(0)
         save_season_store(season_store)
     
-    # Extract link
-    text = message.text.replace("/by", "").replace("!by", "").strip()
-    m = re.search(r"https?://\S+", text)
-    if not m:
-        return await message.reply("❌ **Invalid Link Format**\n\nPlease provide a valid link after the `/by` command.\n\n📝 **Example:** `/by https://bit.ly/example`", parse_mode=ParseMode.MARKDOWN)
-    
-    link = m.group(0)
-    
     await message.reply_chat_action(ChatAction.TYPING)
     
     # Ensure user client connected
     if not getattr(user_client, "is_connected", False):
         if not await init_user_client():
-            return await message.reply("❌ **Service Unavailable**\n\nCould not connect to bypass service. Please try again later.\n\n🆘 **Support:** @M4U_Admin_Bot", parse_mode=ParseMode.MARKDOWN)
+            return await message.reply(
+                "❌ **Service Unavailable**\n\n"
+                "Could not connect to bypass service. Please try again later.\n\n🆘 **Support:** @M4U_Admin_Bot", 
+                parse_mode=ParseMode.MARKDOWN
+            )
+    
+    # Join multiple links with spaces for DD bypass bot
+    links_str = " ".join(urls)
+    link_count = len(urls)
     
     # Create initial status message with animation
-    status_msg = await message.reply("🚀 **Initiating bypass process...**\n\n⏱️ **Status:** Starting...", parse_mode=ParseMode.MARKDOWN)
+    status_msg = await message.reply(
+        f"🚀 **Initiating bypass process for {link_count} link(s)...**\n\n⏱️ **Status:** Starting...", 
+        parse_mode=ParseMode.MARKDOWN
+    )
     
     try:
-        sent = await user_client.send_message(BYPASS_BOT_USERNAME, f"B {link}")
-        print(f"[DEBUG] Sent bypass request with message ID: {sent.id}")
+        sent = await user_client.send_message(BYPASS_BOT_USERNAME, f"B {links_str}")
+        print(f"[DEBUG] Sent multi-link bypass request with message ID: {sent.id} for {link_count} links")
     except Exception as e:
         print(f"[DEBUG] Error sending message: {e}")
         await status_msg.delete()
-        return await message.reply("❌ **Request Failed**\n\nCould not send bypass request. Please try again later.\n\n🆘 **Support:** @Malli4U_Admin_Bot", parse_mode=ParseMode.MARKDOWN)
+        return await message.reply(
+            "❌ **Request Failed**\n\n"
+            "Could not send bypass request. Please try again later.\n\n🆘 **Support:** @M4U_Admin_Bot", 
+            parse_mode=ParseMode.MARKDOWN
+        )
     
     if not (user_manager.is_premium(uid) or user_manager.is_admin(message.from_user.id)):
         user_manager.increment_usage(message.from_user.id)
     
+    # Store all original links as a single string (space-separated)
     pending_bypass_requests[sent.id] = {
         "group_id": group_id,
         "user_id": message.from_user.id,
         "original_msg_id": message.id,
-        "original_link": link,
+        "original_link": links_str,  # All links as space-separated string
+        "link_count": link_count,
         "time_sent": asyncio.get_event_loop().time(),
         "status_msg": status_msg,
         "chat_type": chat_type
@@ -1175,13 +1322,14 @@ async def handle_by(bot: Client, message: Message):
     # Start animation task
     asyncio.create_task(animate_processing_message(status_msg, 20))
     
-    print(f"[DEBUG] Added pending request: {sent.id}")
+    print(f"[DEBUG] Added pending multi-link request: {sent.id} with {link_count} links")
 
 # Initialization tasks
 async def start_tasks():
     if await init_user_client():
         print("[DEBUG] Bypass handler initialized successfully")
         print("[DEBUG] Enhanced animation system activated")
+        print("[DEBUG] Multi-link support enabled")
         print("[DEBUG] Clickable links system enabled")
         print("[DEBUG] SIMPLIFIED start system activated")
         print("[DEBUG] Error handling system active")
@@ -1198,11 +1346,14 @@ async def check_premium_expiry():
                 await safe_send_message(
                     bot_instance,
                     int(uid),
-                    "⏰ **Premium Subscription Expired**\n\nYour premium subscription has expired.\n\n🔄 You're now on the free plan with 3 daily requests.\n\n💎 **Renew Premium:** @M4U_Admin_Bot"
+                    "⏰ **Premium Subscription Expired**\n\n"
+                    "Your premium subscription has expired.\n\n"
+                    "🔄 You're now on the free plan with 3 daily requests.\n\n"
+                    "💎 **Renew Premium:** @M4U_Admin_Bot"
                 )
             await asyncio.sleep(24 * 60 * 60)
         except Exception as e:
             print(f"[DEBUG] Error in premium expiry checker: {e}")
             await asyncio.sleep(3600)
 
-print("[DEBUG] Enhanced Bypass module loaded with SIMPLIFIED START SYSTEM - NO SESSION ISSUES!")
+print("[DEBUG] Enhanced Bypass module loaded with MULTI-LINK SUPPORT!")
